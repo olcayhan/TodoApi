@@ -1,37 +1,36 @@
+using TodoApi.Data;
 using TodoApi.Models.DTOs;
  
 namespace TodoApi.Services;
 
 public class TodoService
 {
-    private readonly List<Todo> _todos = new();
+    private readonly TodoDbContext _context;
     private readonly ILogger<TodoService> _logger;
 
-    public TodoService(ILogger<TodoService> logger)
+    public TodoService(TodoDbContext context, ILogger<TodoService> logger)
     {
+        _context = context;
         _logger = logger;
         _logger.LogInformation("TodoService initialized.");
     }
 
-    private int _nextId = 1;
-
     public List<Todo> GetAll()
     {
         _logger.LogInformation("Fetching all todos.");
-        return _todos;
+        return _context.Todos.ToList();
     }
 
     public Todo? GetById(int id)
     {
         _logger.LogInformation($"Fetching todo with id {id}.");
-        return _todos.FirstOrDefault(t => t.Id == id);
+        return _context.Todos.FirstOrDefault(t => t.Id == id);
     }
 
     public Todo Create(Todo todo)
     {
-        todo.Id = _nextId++;
-        todo.CreatedAt = DateTime.Now;
-        _todos.Add(todo);
+        _context.Todos.Add(todo);
+        _context.SaveChanges();
         _logger.LogInformation($"Todo with id {todo.Id} created.");
         return todo;
     }
@@ -60,6 +59,7 @@ public class TodoService
         {
             todo.IsCompleted = updatedTodo.IsCompleted.Value;
         }
+        _context.SaveChanges();
         return true;
     }
 
@@ -72,7 +72,8 @@ public class TodoService
             return false;
         }
 
-        _todos.Remove(todo);
+        _context.Todos.Remove(todo);
+        _context.SaveChanges();
         _logger.LogInformation($"Todo with id {id} deleted.");
         return true;
     }
