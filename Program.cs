@@ -1,6 +1,7 @@
 using TodoApi.Data;
 using TodoApi.Services;
 using Microsoft.EntityFrameworkCore;
+using TodoApi.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,9 @@ builder.Services.AddDbContext<TodoDbContext>(options =>
     options.UseNpgsql(connectionString));
 
 builder.Services.AddScoped<TodoService>();
+
+builder.Services.AddScoped<ITodoRepository, TodoRepository>();
+builder.Services.AddScoped<ITodoService, TodoService>();
 
 var app = builder.Build();
 

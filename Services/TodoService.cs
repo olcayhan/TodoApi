@@ -1,18 +1,26 @@
-using Microsoft.EntityFrameworkCore;
-using TodoApi.Data;
 using TodoApi.Models;
 using TodoApi.Models.DTOs;
+using TodoApi.Repositories;
 
 namespace TodoApi.Services;
 
-public class TodoService
+public interface ITodoService
 {
-    private readonly TodoDbContext _context;
-    private readonly ILogger<TodoService> _logger;
+    Task<List<Todo>> GetAllAsync();
+    Task<Todo?> GetByIdAsync(int id);
+    Task<Todo?> CreateAsync(TodoCreateDTO todo);
+    Task<bool> UpdateAsync(int id, UpdateTodoDTO updatedTodo);
+    Task<bool> DeleteAsync(int id);
+}
 
-    public TodoService(TodoDbContext context, ILogger<TodoService> logger)
+public class TodoService : ITodoService
+{
+    private readonly ILogger<TodoService> _logger;
+    private readonly ITodoRepository _repository;
+
+    public TodoService(ITodoRepository repository, ILogger<TodoService> logger)
     {
-        _context = context;
+        _repository = repository;
         _logger = logger;
         _logger.LogInformation("TodoService initialized.");
     }
@@ -22,7 +30,7 @@ public class TodoService
         try
         {
             _logger.LogInformation("Fetching all todos.");
-            var entities = await _context.Todos.ToListAsync();
+            var entities = await _repository.ToListAsync();
             return entities;
         }
         catch (Exception ex)
@@ -37,7 +45,7 @@ public class TodoService
         try
         {
             _logger.LogInformation($"Fetching todo with id {id}.");
-            var entity = await _context.Todos.FindAsync(id);
+            var entity = await _repository.FindAsync(id);
             return entity;
         }
         catch (Exception ex)
@@ -57,8 +65,8 @@ public class TodoService
                 Description = todo.Description,
                 IsCompleted = false
             };
-            await _context.Todos.AddAsync(entity);
-            await _context.SaveChangesAsync();
+            await _repository.AddAsync(entity);
+            await _repository.SaveChangesAsync();
             _logger.LogInformation($"Todo with id {entity.Id} created.");
             return entity;
         }
@@ -94,7 +102,7 @@ public class TodoService
             {
                 todo.IsCompleted = updatedTodo.IsCompleted.Value;
             }
-            await _context.SaveChangesAsync();
+            await _repository.SaveChangesAsync();
             return true;
         }
         catch (Exception ex)
@@ -115,8 +123,8 @@ public class TodoService
                 return false;
             }
 
-            _context.Todos.Remove(todo);
-            await _context.SaveChangesAsync();
+            await _repository.Remove(todo);
+            await _repository.SaveChangesAsync();
             _logger.LogInformation($"Todo with id {id} deleted.");
             return true;
         }
