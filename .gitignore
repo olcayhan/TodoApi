@@ -1,0 +1,31 @@
+# .NET
+bin/
+obj/
+*.dll
+*.exe
+*.pdb
+.vs/
+.vscode/
+*.user
+*.sln.docstates
+.vsconfig
+
+# Sensitive data
+appsettings.Development.json
+appsettings.*.local.json
+.env
+.env.local
+.env.*.local
+
+# Docker
+docker-compose.override.yml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.swp
+*.swo
+*.iml
